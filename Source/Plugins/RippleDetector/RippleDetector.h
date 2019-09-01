@@ -51,6 +51,7 @@ class RippleDetector : public GenericProcessor
     bool _isCalibrating;
 
     // Event count
+    bool _refractoryTime;
     bool _detected;
     bool _detectionEnabled;
     unsigned int _rmsSamplesSinceDetection;

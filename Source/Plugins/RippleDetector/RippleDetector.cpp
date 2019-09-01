@@ -122,21 +122,31 @@ void RippleDetector::detectRipples(std::vector<double> &rInRmsBuffer)
             _detectionEnabled = false;
         }
 
-        // count rms samples since last detection
-        if (_detected)
-        {
-            _rmsSamplesSinceDetection += 1;
-        }
-
         // enable detection again
-        if (_rmsSamplesSinceDetection > _rmsRefractionCount)
-        {
-            // reset
-            _detected = false;
-            _detectionEnabled = true;
+        if (_detected && sample < _threshold)
+        { 
+            // start resting with refractory count
+            _refractoryTime = true;
             _rmsSamplesSinceDetection = 0;
 
+            // disable this state and start refractory count
+            _detected = false;
+
+            // mark event in the lfp viewer
             sendTtlEvent(rms_sample, 0);
+        }
+
+        // check if refractory count to enable detection again
+        if (_rmsSamplesSinceDetection > _rmsRefractionCount)
+        {
+            _refractoryTime = false;
+            _detectionEnabled = true;
+        }
+
+        // count rms samples since last detection
+        if (_refractoryTime)
+        {
+            _rmsSamplesSinceDetection += 1;
         }
     }
 }
