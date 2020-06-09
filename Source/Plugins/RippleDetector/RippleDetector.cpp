@@ -3,7 +3,7 @@
 #define DEFAULT_RMS_SIZE 10
 #define DEFAULT_THRESHOLD_AMP 1
 #define DEFAULT__REFRACTORY_COUNT 100
-#define DEFAULT_CALIBRATION_BUFFERS_COUNT 500
+#define DEFAULT_CALIBRATION_BUFFERS_COUNT 1000
 
 RippleDetector::RippleDetector()
     : GenericProcessor("RippleDetector")
@@ -115,6 +115,7 @@ void RippleDetector::detectRipples(std::vector<double> &rInRmsBuffer)
     {
         double sample = rInRmsBuffer[rms_sample];
 
+        printf("detected %d, refractory %d, can_detect %d, sample %f, thresh %f\n",_detected, _refractoryTime, _detectionEnabled, sample, _threshold);
         if (_detectionEnabled && sample > _threshold)
         {
             sendTtlEvent(rms_sample, 1);
@@ -131,9 +132,15 @@ void RippleDetector::detectRipples(std::vector<double> &rInRmsBuffer)
 
             // disable this state and start refractory count
             _detected = false;
-
+            
             // mark event in the lfp viewer
             sendTtlEvent(rms_sample, 0);
+        }
+
+        // count rms samples since last detection
+        if (_refractoryTime)
+        {
+            _rmsSamplesSinceDetection += 1;
         }
 
         // check if refractory count to enable detection again
@@ -141,12 +148,6 @@ void RippleDetector::detectRipples(std::vector<double> &rInRmsBuffer)
         {
             _refractoryTime = false;
             _detectionEnabled = true;
-        }
-
-        // count rms samples since last detection
-        if (_refractoryTime)
-        {
-            _rmsSamplesSinceDetection += 1;
         }
     }
 }
@@ -168,9 +169,8 @@ void RippleDetector::calibrate()
         {
             _standardDeviation += pow(_calibrationRms[rms_sample] - _mean, 2.0);
         }
-        _standardDeviation = sqrt(_standardDeviation / ((double)_calibrationRms.size() - 1));
+        _standardDeviation = sqrt(_standardDeviation / ((double)_calibrationRms.size() - 1.0));
 
-        // define _threshold
         _threshold = _mean + _thresholdAmp * _standardDeviation;
 
         // printf calculated statistics
@@ -205,6 +205,9 @@ void RippleDetector::process(AudioSampleBuffer &rInBuffer)
     _rmsRefractionCount = _pRippleDetectorEditor->_pluginUi._rmsRefractionCount;
     _rmsSize = _pRippleDetectorEditor->_pluginUi._rmsSamplesCount;
 
+    // define _threshold
+    _threshold = _mean + _thresholdAmp * _standardDeviation;
+
     if (_pRippleDetectorEditor->_pluginUi._calibrate == true)
     {
         printf("recalibrating...\n");
@@ -235,7 +238,7 @@ void RippleDetector::process(AudioSampleBuffer &rInBuffer)
     // Generate RMS buffer
     for (int rms_index = 0; rms_index < rInBuffer.getNumSamples(); rms_index += _rmsSize)
     {
-        if (rms_index + _rmsSize > rInBuffer.getNumSamples())
+        if (rms_index + _rmsSize >= rInBuffer.getNumSamples())
         {
             break;
         }
@@ -272,40 +275,8 @@ void RippleDetector::process(AudioSampleBuffer &rInBuffer)
 
     // count how many buffers have processed
     _currentBuffer++;
-
-    // Check if any event ocurred and tells this plugin to call the handleEventsFunction()
-    checkForEvents();
 }
 
 void RippleDetector::handleEvent(const EventChannel *rInEventInfo, const MidiMessage &rInEvent, int samplePosition)
 {
-    // handle plugin control events
-    _isPluginEnabled = true;
-
-    if (Event::getEventType(rInEvent) == EventChannel::TEXT)
-    {
-        TextEventPtr text_event = TextEvent::deserializeFromMessage(rInEvent, rInEventInfo);
-
-        std::string msg = std::string((char *)text_event->getRawDataPointer());
-
-        printf("sample: %Ld message: %s\n", text_event->getTimestamp(), msg.c_str());
-
-        if (strcmp(msg.c_str(), "movement_detected") == 0)
-        {
-            _isPluginEnabled = false;
-        }
-
-        if (strcmp(msg.c_str(), "detected_sharpwave") == 0)
-        {
-            printf("Captured sharpwave from the ripple detection plugin\n");
-
-            // if detected sharpwave and ripple do logic such as emitting ttl to hardware
-            if (_detected)
-            {
-                //TODO::implement hardware logic
-
-                printf("Detected ripple and sharp wave simultaneusly\n");
-            }
-        }
-    }
 }

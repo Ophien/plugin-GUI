@@ -22,6 +22,7 @@ class RippleDetectorUi : public Component, public ButtonListener, public SliderL
     Slider *_thresholdAmplitude;
     Slider *_refractoryRmsSamples;
     Slider *_rmsSamples;
+    Slider *_threshold;
     TextButton *_calibrateButton;
 
     // labels
@@ -36,9 +37,9 @@ class RippleDetectorUi : public Component, public ButtonListener, public SliderL
     int _channel;
     int _outChannel;
     bool _calibrate;
-    unsigned int _thresholdAmp;
-    unsigned int _rmsRefractionCount;
-    unsigned int _rmsSamplesCount;
+    double _thresholdAmp;
+    int _rmsRefractionCount;
+    int _rmsSamplesCount;
 
   private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RippleDetectorUi);

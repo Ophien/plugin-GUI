@@ -42,7 +42,8 @@ RippleDetectorUi::RippleDetectorUi()
     addAndMakeVisible(_outChannelSelection);
 
     _thresholdAmplitude = new Slider("Threshold Amp");                         // Create the object and set its name
-    _thresholdAmplitude->setRange(1, 1000, 0);                                 // Set the minium value, the max value and the increment interval
+    _thresholdAmplitude->setRange(0.0001, 100.0, 0);                                 // Set the minium value, the max value and the increment interval
+    _thresholdAmplitude->setValue(1.0);
     _thresholdAmplitude->setSliderStyle(Slider::Rotary);                       // Set the style of the styler, horizontal or vertical
     _thresholdAmplitude->setTextBoxIsEditable(false);                          // Set the visual style of the slider
     _thresholdAmplitude->setTextBoxStyle(Slider::TextBoxRight, false, 80, 20); // Set the visual style of the slider
@@ -51,7 +52,8 @@ RippleDetectorUi::RippleDetectorUi()
     addAndMakeVisible(_thresholdAmplitude);                                    // Adding the slider into this component for it to be visible
 
     _refractoryRmsSamples = new Slider("Refractory samples");                    // Create the object and set its name
-    _refractoryRmsSamples->setRange(1, 1000, 0);                                 // Set the minium value, the max value and the increment interval
+    _refractoryRmsSamples->setRange(1, 10000, 0);                                 // Set the minium value, the max value and the increment interval
+    _refractoryRmsSamples->setValue(10.0);
     _refractoryRmsSamples->setSliderStyle(Slider::Rotary);                       // Set the style of the styler, horizontal or vertical
     _refractoryRmsSamples->setTextBoxIsEditable(false);                          // Set the visual style of the slider
     _refractoryRmsSamples->setTextBoxStyle(Slider::TextBoxRight, false, 80, 20); // Set the visual style of the slider
@@ -60,7 +62,8 @@ RippleDetectorUi::RippleDetectorUi()
     addAndMakeVisible(_refractoryRmsSamples);                                    // Adding the slider into this component for it to be visible
 
     _rmsSamples = new Slider("RMS samples");                           // Create the object and set its name
-    _rmsSamples->setRange(1, 1000, 0);                                 // Set the minium value, the max value and the increment interval
+    _rmsSamples->setRange(1, 10000, 0);                                 // Set the minium value, the max value and the increment interval
+    _rmsSamples->setValue(600.0);
     _rmsSamples->setSliderStyle(Slider::Rotary);                       // Set the style of the styler, horizontal or vertical
     _rmsSamples->setTextBoxIsEditable(false);                          // Set the visual style of the slider
     _rmsSamples->setTextBoxStyle(Slider::TextBoxRight, false, 80, 20); // Set the visual style of the slider
@@ -168,13 +171,13 @@ void RippleDetectorUi::buttonClicked(Button *pInButtonClicked)
 void RippleDetectorUi::sliderValueChanged(Slider *pInSliderChanged)
 {
     if (pInSliderChanged == _thresholdAmplitude)
-        _thresholdAmp = (unsigned int)pInSliderChanged->getValue();
+        _thresholdAmp = pInSliderChanged->getValue();
 
     if (pInSliderChanged == _refractoryRmsSamples)
-        _rmsRefractionCount = (unsigned int)pInSliderChanged->getValue();
+        _rmsRefractionCount = (int)pInSliderChanged->getValue();
 
     if (pInSliderChanged == _rmsSamples)
-        _rmsSamplesCount = (unsigned int)pInSliderChanged->getValue();
+        _rmsSamplesCount = (int)pInSliderChanged->getValue();
 }
 
 void RippleDetectorUi::comboBoxChanged(ComboBox *pInComboBoxChanged)

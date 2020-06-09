@@ -54,6 +54,7 @@ class RippleDetector : public GenericProcessor
     bool _refractoryTime;
     bool _detected;
     bool _detectionEnabled;
+    bool _movementDetected;
     unsigned int _rmsSamplesSinceDetection;
     unsigned int _rmsRefractionCount;
 
